@@ -22,20 +22,20 @@ To solve this, I engineered a custom **4-channel YOLOv11 architecture** that dyn
 ### 1. Probabilistic Spatial Bias Diagnosis
 Initially, to avoid manual labeling, I utilized a **Weak Supervision** pipeline using OpenStreetMap centroid coordinates. To evaluate the spatial confidence of this approach, I applied 10 stochastic forward passes using **Monte Carlo Dropout (15%)** to generate an epistemic uncertainty heatmap.
 
-![Spatial Uncertainty Heatmap](heatmap_of_doubt.png)
+![Spatial Uncertainty Heatmap](assets/heatmap_of_doubt.png)
 > **Figure 1: Heatmap of Doubt.** *Deep red indicates high model consensus; blue indicates high epistemic doubt.* > **Analysis:** The heatmap successfully visualized a critical data bias: the model learned to detect the *geographical center of harbor inlets* rather than maritime vessels. This proved the weak OSM labels were insufficient and guided the pivot to a Data-Centric AI approach.
 
 ### 2. Architecture Robustness vs. SNR Decay
 To test the resilience of the 4-channel model against severe weather and poor sensor quality, I conducted an ablation study by injecting incremental levels of standard Gaussian noise ($\sigma$) across all channels.
 
-![mAP SNR Decay](mAP_SNR.png)
+![mAP SNR Decay](assets/mAP_SNR.png)
 > **Figure 2: Architecture Robustness.** *Relative mAP Retention vs. Simulated Sensor/Atmospheric Noise.*
 > **Analysis:** The steep degradation curve highlights the fragility of models trained on purely heuristic center-point labels. Because the model overfit to pristine background water textures, it suffered catastrophic failure when noise disrupted those textures.
 
 ### 3. Data-Centric Intervention & Convergence
 Using the insights from the Monte Carlo and SNR diagnostics, I executed a **Data-Centric intervention**. I discarded the OSM labels and manually annotated a highly-curated 50-image subset using precise bounding boxes around true maritime targets, enabling high-quality Transfer Learning.
 
-![Training Results](results.png)
+![Training Results](assets/results.png)
 > **Figure 3: Training Convergence.** *Loss and precision metrics over 50 epochs.*
 > **Analysis:** Despite the structural modifications required to force YOLO to accept 4-channel NIR tensors, the custom architecture successfully converged. The model effectively decoupled the ships from the background harbor noise, proving the viability of the multispectral weights.
 
