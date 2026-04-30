@@ -1,0 +1,13 @@
+# YOLO 4-Channel Configuration File
+# This points the custom architecture to your multispectral data
+
+path: data/processed  # Path to your final 4-channel dataset
+train: train/images
+val: train/images     # Using train as val for the 50-image weak supervision proof-of-concept
+
+# Classes
+names:
+  0: ship
+
+# The crucial custom setting for the architecture surgery
+channels: 4

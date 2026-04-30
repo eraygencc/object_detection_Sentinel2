@@ -1,0 +1,13 @@
+# YOLO 3-Channel Baseline Configuration File
+# This points the standard YOLO model to the RGB-only dataset for the ablation study
+
+path: baseline_rgb_dataset  # Path to the 3-channel dataset we generated
+train: train/images
+val: train/images
+
+# Classes
+names:
+  0: ship
+
+# Standard RGB channels
+channels: 3
