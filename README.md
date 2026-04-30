@@ -53,7 +53,7 @@ By adjusting the confidence threshold, we can actively filter out the "noisy" sp
 🚀 Quick Start & Usage
 ```
 1. Clone and Install Dependencies:
-  git clone [https://github.com/eraygencc/4Channel-YOLO-Maritime-Detection.git](https://github.com/YOUR_USERNAME/4Channel-YOLO-Maritime-Detection.git)
+  git clone [https://github.com/eraygencc/4Channel-YOLO-Maritime-Detection.git](https://github.com/eraygencc/4Channel-YOLO-Maritime-Detection.git)
 cd 4Channel-YOLO-Maritime-Detection
 pip install -r requirements.txt
 ```
