@@ -33,22 +33,34 @@ This repository demonstrates a complete end-to-end MLOps workflow, including PyT
 ```
 
 📊 Results & Scientific Validation
-1. Training Convergence
+
+### 1. Training Convergence
+
 The custom 4-channel model achieved stable convergence rapidly. Utilizing initialized weights (where the NIR channel was initialized using the mean of the RGB weights) prevented catastrophic forgetting during early epochs.
 
-2. Ablation Study: Multispectral vs. RGB Robustness
-To prove the value of the 4th (NIR) channel, an ablation study was conducted injecting incremental Gaussian noise (simulating atmospheric haze and sensor degradation) into the dataset.
+![Training Results](assets/results.png)
 
-Conclusion: The Custom 4-Channel model consistently outperforms the Baseline 3-Channel (RGB-only) model in clean and lightly degraded environments (noise levels 0 to 4). As noise increases beyond this threshold, both models experience expected signal collapse due to the fundamentally tiny pixel footprint of maritime vessels (<10 pixels), highlighting the critical limits of Small Object Detection.
+### 2. Ablation Study: Multispectral vs. RGB Robustness
+To prove the value of the 4th (NIR) channel, an ablation study was conducted injecting incremental Gaussian noise (simulating atmospheric haze and sensor degradation) into the dataset. 
 
-3. Epistemic Uncertainty & Noise Filtration
-Using Monte Carlo Dropout, stochastic forward passes were aggregated to visualize the model's spatial doubt.
+**Conclusion:** The Custom 4-Channel model consistently outperforms the Baseline 3-Channel (RGB-only) model in clean and lightly degraded environments (noise levels 0 to 4). As noise increases beyond this threshold, both models experience expected signal collapse due to the fundamentally tiny pixel footprint of maritime vessels (<10 pixels), highlighting the critical limits of Small Object Detection.
 
-Blue Regions: High epistemic doubt (The model investigated land-based infrastructure with similar spectral signatures but lacked consensus).
+![mAP vs SNR Comparison Plot](assets/mAP_Comparison_Plot.png)
 
-Deep Red Regions: High mathematical consensus (True maritime targets).
+
+### 3. Epistemic Uncertainty & Noise Filtration
+Using Monte Carlo Dropout, stochastic forward passes were aggregated to visualize the model's spatial doubt. 
+* **Blue Regions:** High epistemic doubt (The model investigated land-based infrastructure with similar spectral signatures but lacked consensus).
+* **Deep Red Regions:** High mathematical consensus (True maritime targets).
 
 By adjusting the confidence threshold, we can actively filter out the "noisy" spatial doubt and isolate true positive detections. In a production environment, the remaining land-based noise would be handled via standard GeoJSON vector masking.
+
+**Maximum Sensitivity (Conf = 0.01)**
+![Doubt at 0.01](assets/Heatmap_of_Doubt_conf0.01.png)
+
+**Consensus Filtration (Conf = 0.05)**
+![Doubt at 0.05](assets/Heatmap_of_Doubt_conf0.05.png)
+
 
 🚀 Quick Start & Usage
 ```
