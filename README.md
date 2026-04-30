@@ -1,62 +1,77 @@
-# object_detection_Sentinel2
-# 🛰️ Sentinel-2 Multispectral Ship Detection: Weak Supervision & Epistemic Uncertainty
+# 🚢 4Channel-YOLO-Maritime-Detection
 
-## 📌 Project Overview
-This repository contains a full-stack Machine Learning pipeline for maritime vessel detection using **multispectral satellite imagery** (Sentinel-2). Standard Object Detection models rely on 3-channel RGB data, which often fails under heavy cloud cover, haze, or shadows. 
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c)
+![YOLO](https://img.shields.io/badge/YOLO-v11-00FFFF)
+![Rasterio](https://img.shields.io/badge/Geospatial-Rasterio-green)
 
-To solve this, I engineered a custom **4-channel YOLOv11 architecture** that dynamically ingests **Near-Infrared (NIR)** bands alongside RGB. Due to the lack of ground-truth bounding boxes for raw Sentinel-2 data, this project explores the MLOps lifecycle from Weak Supervision (heuristic OpenStreetMap labels) to Data-Centric AI (human-in-the-loop fine-tuning), heavily utilizing probabilistic math to diagnose dataset bias.
+A custom **4-channel YOLO pipeline** for multispectral Small Object Detection (SOD) in the maritime domain using Sentinel-2 satellite imagery. 
 
----
+This repository demonstrates a complete end-to-end MLOps workflow, including PyTorch architecture surgery, data-centric weak supervision refinement, Monte Carlo Dropout for epistemic uncertainty quantification, and environmental noise ablation studies.
 
-## 🔬 Key Engineering Highlights
-
-* **Cloud-Native Data Ingestion:** Automated fetching of 10km x 10km multi-band satellite chips via the Planetary Computer STAC API.
-* **Architecture Surgery:** Modified the foundational PyTorch convolutional layers of YOLOv11 to accept 4-channel (`[R, G, B, NIR]`) tensor inputs without destroying pre-trained RGB weights.
-* **Epistemic Uncertainty Quantification:** Engineered a custom PyTorch `forward_hook` to inject stochastic Monte Carlo Dropout during inference, bypassing deterministic point-estimates to visualize spatial variance.
-* **Ablation & Robustness Testing:** Evaluated model degradation against simulated atmospheric/sensor noise (Gaussian injection).
-
----
-
-## 📊 Evaluation & Diagnostics
-
-### 1. Probabilistic Spatial Bias Diagnosis
-Initially, to avoid manual labeling, I utilized a **Weak Supervision** pipeline using OpenStreetMap centroid coordinates. To evaluate the spatial confidence of this approach, I applied 10 stochastic forward passes using **Monte Carlo Dropout (15%)** to generate an epistemic uncertainty heatmap.
-
-![Spatial Uncertainty Heatmap](assets/heatmap_of_doubt.png)
-> **Figure 1: Heatmap of Doubt.** *Deep red indicates high model consensus; blue indicates high epistemic doubt.* > **Analysis:** The heatmap successfully visualized a critical data bias: the model learned to detect the *geographical center of harbor inlets* rather than maritime vessels. This proved the weak OSM labels were insufficient and guided the pivot to a Data-Centric AI approach.
-
-### 2. Architecture Robustness vs. SNR Decay
-To test the resilience of the 4-channel model against severe weather and poor sensor quality, I conducted an ablation study by injecting incremental levels of standard Gaussian noise ($\sigma$) across all channels.
-
-![mAP SNR Decay](assets/mAP_SNR.png)
-> **Figure 2: Architecture Robustness.** *Relative mAP Retention vs. Simulated Sensor/Atmospheric Noise.*
-> **Analysis:** The steep degradation curve highlights the fragility of models trained on purely heuristic center-point labels. Because the model overfit to pristine background water textures, it suffered catastrophic failure when noise disrupted those textures.
-
-### 3. Data-Centric Intervention & Convergence
-Using the insights from the Monte Carlo and SNR diagnostics, I executed a **Data-Centric intervention**. I discarded the OSM labels and manually annotated a highly-curated 50-image subset using precise bounding boxes around true maritime targets, enabling high-quality Transfer Learning.
-
-![Training Results](assets/results.png)
-> **Figure 3: Training Convergence.** *Loss and precision metrics over 50 epochs.*
-> **Analysis:** Despite the structural modifications required to force YOLO to accept 4-channel NIR tensors, the custom architecture successfully converged. The model effectively decoupled the ships from the background harbor noise, proving the viability of the multispectral weights.
+## 🧠 Core Technical Achievements
+* **Custom Architecture Surgery:** Modified standard YOLO convolutional layers via PyTorch to natively accept 4-channel tensors (RGB + Near-Infrared) while preserving pre-trained weights via transfer learning.
+* **Data-Centric AI:** Successfully transitioned from weak OSM (OpenStreetMap) labels to a refined dataset, jumping mAP@50 from 0.15 to highly competitive baseline metrics using only 50 manually curated training examples.
+* **Epistemic Uncertainty Quantification:** Implemented stochastic forward passes (Monte Carlo Dropout) to generate spatial doubt heatmaps, successfully isolating structural anomalies (e.g., white roofs on land) from high-confidence maritime targets.
+* **Robustness Ablation Study:** Mathematically validated the spatial value of the Near-Infrared (NIR) spectrum against standard RGB baselines under simulated atmospheric noise degradation.
 
 ---
 
-## 🛠️ Repository Structure
+## 📂 Repository Structure
 
-* `prepare_dataset.py`: Merges raw 4-channel `.tif` imagery with curated YOLO `.txt` labels and generates the train/val split structure.
-* `train.py`: Contains the PyTorch layer surgery script to upgrade standard YOLO to 4 channels, and executes the fine-tuning loop.
+```text
+4Channel-YOLO-Maritime-Detection/
+├── assets/                     # Visualizations, plots, and inference samples
+├── configs/                    # YAML configuration files for model training
+├── src/                        # Modular source code
+│   ├── data/                   # Scripts for data preprocessing and label generation
+│   ├── models/                 # Custom PyTorch surgery and training pipelines
+│   └── evaluation/             # Inference, uncertainty heatmaps, and ablation scripts
+├── .gitignore                  # Prevents uploading large TIFFs and model weights
+├── requirements.txt            # Explicit environment dependencies
+└── README.md
+```
 
+📊 Results & Scientific Validation
+1. Training Convergence
+The custom 4-channel model achieved stable convergence rapidly. Utilizing initialized weights (where the NIR channel was initialized using the mean of the RGB weights) prevented catastrophic forgetting during early epochs.
 
-## 🚀 Quick Start
-1. Clone the repository and install requirements:
-   ```bash
-   pip install ultralytics rasterio torch torchvision pandas
+2. Ablation Study: Multispectral vs. RGB Robustness
+To prove the value of the 4th (NIR) channel, an ablation study was conducted injecting incremental Gaussian noise (simulating atmospheric haze and sensor degradation) into the dataset.
 
-2. Build the final paired dataset:
-   ```bash
-   python prepare_dataset.py
-3. Initialize the 4-channel model and start training:
-    ```bash
-    python train.py
-   
-  
+Conclusion: The Custom 4-Channel model consistently outperforms the Baseline 3-Channel (RGB-only) model in clean and lightly degraded environments (noise levels 0 to 4). As noise increases beyond this threshold, both models experience expected signal collapse due to the fundamentally tiny pixel footprint of maritime vessels (<10 pixels), highlighting the critical limits of Small Object Detection.
+
+3. Epistemic Uncertainty & Noise Filtration
+Using Monte Carlo Dropout, stochastic forward passes were aggregated to visualize the model's spatial doubt.
+
+Blue Regions: High epistemic doubt (The model investigated land-based infrastructure with similar spectral signatures but lacked consensus).
+
+Deep Red Regions: High mathematical consensus (True maritime targets).
+
+By adjusting the confidence threshold, we can actively filter out the "noisy" spatial doubt and isolate true positive detections. In a production environment, the remaining land-based noise would be handled via standard GeoJSON vector masking.
+
+🚀 Quick Start & Usage
+```
+1. Clone and Install Dependencies:
+  git clone [https://github.com/eraygencc/4Channel-YOLO-Maritime-Detection.git](https://github.com/YOUR_USERNAME/4Channel-YOLO-Maritime-Detection.git)
+cd 4Channel-YOLO-Maritime-Detection
+pip install -r requirements.txt
+```
+2. Train the Custom Model:
+
+```
+python src/models/train_4ch.py
+```
+
+3. Run the Ablation Study:
+
+```
+python src/evaluation/evaluate_noise.py
+```
+
+4. Generate Uncertainty Heatmaps:
+
+```
+python src/evaluation/mc_dropout_heatmap.py
+```
+Note: Due to GitHub file size limits, the data/ folder and .pt model weights are omitted. To run inference, supply your own 4-channel TIFF imagery.
