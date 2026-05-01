@@ -87,3 +87,14 @@ python src/evaluation/evaluate_noise.py
 python src/evaluation/mc_dropout_heatmap.py
 ```
 Note: Due to GitHub file size limits, the data/ folder and .pt model weights are omitted. To run inference, supply your own 4-channel TIFF imagery.
+
+**5. Run via Docker (Containerized Environment):**
+If you prefer not to manage local Python environments, you can run the entire pipeline inside an isolated Docker container. 
+
+```bash
+# Build the image (Downloads system dependencies like GDAL and builds the environment)
+docker build -t multispectral-yolo .
+
+# Run the ablation study container
+docker run --rm multispectral-yolo
+```
